@@ -1,5 +1,4 @@
-#include <Arduino.h>
-#include <Wire.h>
+#include "I2C_Device.h"
 
 // Define Slave I2C Address
 #define SLAVE_ADDR 9
@@ -9,18 +8,7 @@
 #define HEADER_LENGTH 2
 
 int answer[3] = {256, 6, 7};
-bool synchronizing = false;
-
-void send_sync_data() {
-	uint8_t ans[2] = { 0, 0 };
-
-	ans[0] = sizeof(int);
-	ans[1] = ANSWER_SIZE;
-
-	Wire.write(ans, HEADER_LENGTH);
-  
-	Serial.print(String(ans[0]) + " " + String(ans[1])); 
-}
+I2C_Device *me = NULL;
 
 void send_sensors_data() {  
 	uint8_t* ans = (uint8_t*)answer;
@@ -37,39 +25,21 @@ void send_sensors_data() {
 }
 
 void requestEvent() {
-	if (synchronizing) {
-		send_sync_data();
+	if(me->is_synchronizing()) {
+		me->send_sync_data_for_int_array(ANSWER_SIZE);
 	} else {
-		send_sensors_data();
+		me->send_int_array(answer, ANSWER_SIZE);
 	}
 }
 
-void receiveEvent(int a) {
-	// Read while data received
-	while (0 < Wire.available()) {
-		byte x = Wire.read();
-   
-		if (x == 0) synchronizing = true;
-		else synchronizing = false;
-	
-	}
-  
-	// Print to Serial Monitor
-	Serial.println("Receive event");
+void receiveEvent(size_t a) {
+	me->check_synchronizing();
 }
 
 void setup() {
 
-	// Initialize I2C communications as Slave
-	Wire.begin(SLAVE_ADDR);
-  
-	// Function to run when data requested from master
-	Wire.onRequest(requestEvent); 
-  
-	// Function to run when data received from master
-	Wire.onReceive(receiveEvent);
+	me = I2C_Device::begin_communication_for_slave(SLAVE_ADDR, requestEvent, receiveEvent);
 
-	// Setup Serial Monitor 
 	Serial.begin(9600);
 	Serial.println("I2C Slave");
 }

@@ -1,10 +1,10 @@
-#include <Arduino.h>
-#include <Wire.h>
 #include <SFE_BMP180.h>
 #include <ESP8266WiFi.h>
 
-#define MASTER 1  // tmp solution
-#include "i2c_comunnication.h"
+#include "I2C_Device.h"
+
+// #define MASTER 1  // tmp solution
+// #include "i2c_comunnication.h"
 
 #define SLAVE_ADDR 9
 
@@ -16,7 +16,7 @@
 WiFiServer server(80);
 
 SFE_BMP180 pressure;
-Slave_device sensors_slave;
+I2C_Device *sensors_slave;
 
 bool is_synchronized = false;
 
@@ -27,7 +27,7 @@ bool get_temperature (double *temperature_to_set);
 /* -------------------------------------------------------------------------------------------------- */
 
 void setup() {
-	sensors_slave = create_device_communication(SLAVE_ADDR);
+	sensors_slave = I2C_Device::begin_communication(SLAVE_ADDR);
 
 	Serial.begin(9600);
 	Serial.println("I2C Master");
@@ -64,13 +64,15 @@ void loop() {
 
 	delay(5000);
 
-	if (is_synchronized) {
-		int sensors_data[sensors_slave.recive_data_length];
+	if (sensors_slave->get_is_synchronized()) {
+		int *sensors_data = NULL;
+
+		sensors_data = sensors_slave->get_int_array_from_response();
 
 		Serial.println("----------------------------");
-		if (get_int_array_from_device(sensors_slave, sensors_data)) {
-			for (int i = 0; i < sensors_slave.recive_data_length; i++) {
-				Serial.println(sensors_data[i]);
+		if (sensors_data != NULL) {
+			for (int i = 0; i < sensors_slave->get_recive_data_length(); i++) {
+				Serial.println(String(sensors_data[i]));
 			}
 
 			s1 = sensors_data[0];
@@ -78,7 +80,7 @@ void loop() {
 			s3 = sensors_data[2];
 		}
 	} else {
-		is_synchronized = synchronized_with_slave(sensors_slave);
+		sensors_slave->synchronize_data_format_with_slave();
 	}
 
 	if (get_temperature(&T)) {
