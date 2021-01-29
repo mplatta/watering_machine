@@ -1,4 +1,4 @@
-#include "I2C_Device.h"
+#include "I2C_Im_Slave.h"
 
 // Define Slave I2C Address
 #define SLAVE_ADDR 9
@@ -8,7 +8,7 @@
 #define HEADER_LENGTH 2
 
 int answer[3] = {256, 6, 7};
-I2C_Device *me = NULL;
+I2C_Im_Slave *me = NULL;
 
 void send_sensors_data() {  
 	uint8_t* ans = (uint8_t*)answer;
@@ -38,7 +38,7 @@ void receiveEvent(size_t a) {
 
 void setup() {
 
-	me = I2C_Device::begin_communication_for_slave(SLAVE_ADDR, requestEvent, receiveEvent);
+	me = I2C_Im_Slave::begin_communication(SLAVE_ADDR, requestEvent, receiveEvent);
 
 	Serial.begin(9600);
 	Serial.println("I2C Slave");

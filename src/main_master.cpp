@@ -1,7 +1,7 @@
 #include <SFE_BMP180.h>
 #include <ESP8266WiFi.h>
 
-#include "I2C_Device.h"
+#include "I2C_Slave.h"
 
 // #define MASTER 1  // tmp solution
 // #include "i2c_comunnication.h"
@@ -16,7 +16,7 @@
 WiFiServer server(80);
 
 SFE_BMP180 pressure;
-I2C_Device *sensors_slave;
+I2C_Slave *sensors_slave;
 
 bool is_synchronized = false;
 
@@ -27,7 +27,7 @@ bool get_temperature (double *temperature_to_set);
 /* -------------------------------------------------------------------------------------------------- */
 
 void setup() {
-	sensors_slave = I2C_Device::begin_communication(SLAVE_ADDR);
+	sensors_slave = I2C_Slave::begin_communication(SLAVE_ADDR);
 
 	Serial.begin(9600);
 	Serial.println("I2C Master");
