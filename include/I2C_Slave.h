@@ -6,15 +6,15 @@
 class I2C_Slave: public I2C_Device
 {
 private:
-    static int device_counter;
+	static int device_counter;
 
 public:
-    static I2C_Slave* begin_communication ( int address );
+	static I2C_Slave* begin_communication ( int address );
 
-    bool synchronize_data_format_with_slave ( );
+	bool synchronize_data_format_with_slave ( );
 
-    I2C_Slave(int device_address): I2C_Device(device_address) {}
-    ~I2C_Slave();
+	I2C_Slave(int device_address): I2C_Device(device_address) {}
+	~I2C_Slave();
 };
 
 #endif //_I2C_SLAVE_H_
