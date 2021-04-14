@@ -18,9 +18,9 @@ const int WET_VALUE = 261;
 const int DRY_VALUE = 650;
 
 // Sensors PINs
-const int SENSOR_0_PIN = 19; // A0
-const int SENSOR_1_PIN = 20; // A1
-const int SENSOR_2_PIN = 21; // A2
+const int SENSOR_0_PIN = 0; // A0
+const int SENSOR_1_PIN = 1; // A1
+const int SENSOR_2_PIN = 2; // A2
 
 /* ---------------------- GLOBAL VARIABLES ------------------- */
 int answer[3] = {0, 0, 0};
@@ -45,6 +45,8 @@ void loop() {
 	int sensor_0_percent = read_humidity_in_percentages(SENSOR_0_PIN);
 	int sensor_1_percent = read_humidity_in_percentages(SENSOR_1_PIN);
 	int sensor_2_percent = read_humidity_in_percentages(SENSOR_2_PIN);
+
+	Serial.println(String(sensor_0_percent) + " " + String(sensor_1_percent) + " " + String(sensor_2_percent));
 
 	answer[0] = sensor_0_percent;
 	answer[1] = sensor_1_percent;
