@@ -5,13 +5,16 @@
 #define SLAVE_ADDR 9
 
 // Define Slave answer size
-#define ANSWER_SIZE   3
+// #define ANSWER_SIZE   4
 #define HEADER_LENGTH 2
 
 // Define kind of messages from master
 #define MESSAGE_MASK           0b11000000
 #define SEND_DATA_FROM_SENSORS 0
 #define REGISTER_NEW_SENSOR    64
+
+int ANSWER_SIZE = 4; // TEMPORARY ONLY FOR TESTS
+int active_sensors =  0b00000111;
 
 // Define wet/dry values
 const int WET_VALUE = 261;
@@ -22,8 +25,10 @@ const int SENSOR_0_PIN = 0; // A0
 const int SENSOR_1_PIN = 1; // A1
 const int SENSOR_2_PIN = 2; // A2
 
+int test_count = 0;
+
 /* ---------------------- GLOBAL VARIABLES ------------------- */
-int answer[3] = {0, 0, 0};
+int answer[5] = {0, 0, 0, 0, 0};
 I2C_Im_Slave *me = NULL;
 
 /* ----------------------- PROTOTYPES ------------------------ */
@@ -46,11 +51,15 @@ void loop() {
 	int sensor_1_percent = read_humidity_in_percentages(SENSOR_1_PIN);
 	int sensor_2_percent = read_humidity_in_percentages(SENSOR_2_PIN);
 
+	int sensor_3_percent = 50;
+
 	Serial.println(String(sensor_0_percent) + " " + String(sensor_1_percent) + " " + String(sensor_2_percent));
 
-	answer[0] = sensor_0_percent;
-	answer[1] = sensor_1_percent;
-	answer[2] = sensor_2_percent;
+	answer[0] = active_sensors;
+	answer[1] = sensor_0_percent;
+	answer[2] = sensor_1_percent;
+	answer[3] = sensor_2_percent;
+	answer[4] = sensor_3_percent;
 
 	delay(50);
 }
@@ -76,6 +85,12 @@ void reaction_for_request(int request){
 	{
 	case SEND_DATA_FROM_SENSORS:
 		me->send_int_array(answer, ANSWER_SIZE);
+		if (test_count != 100) test_count++;
+		if (test_count == 10) {
+			test_count = 100;
+			ANSWER_SIZE += 1;
+			active_sensors = 0b00001111;
+		}
 		break;
 	case REGISTER_NEW_SENSOR:
 		Serial.println("TODO");
@@ -90,5 +105,5 @@ int read_humidity_in_percentages(int sensor_pin) {
 	int raw_value = analogRead(sensor_pin);
 	int percent = map(raw_value, WET_VALUE, DRY_VALUE, 100, 0);
 
-	return percent;
+	return (percent >= 0) ? percent : 0;
 }

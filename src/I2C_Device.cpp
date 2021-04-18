@@ -8,13 +8,6 @@ void I2C_Device::zeroes_array(int target_array[], int size_of_array) {
 	}
 }
 
-void I2C_Device::send_request(int address, int expected_length, int request) {
-	Wire.beginTransmission(address);
-	Wire.write(request);
-	Wire.endTransmission();
-	Wire.requestFrom(address, expected_length); 
-}
-
 void I2C_Device::send_sync_request(int address) {
 	this->send_request(address, I2C_Device::HEADER_LENGTH, I2C_Device::SYNC_MESSAGE);
 }
@@ -68,6 +61,13 @@ void I2C_Device::send_int_array(int array[], int array_length) {
 	uint8_t* ans = (uint8_t*)array;
 
 	Wire.write(ans, array_length * sizeof(int));
+}
+
+void I2C_Device::send_request(int address, int expected_length, int request) {
+	Wire.beginTransmission(address);
+	Wire.write(request);
+	Wire.endTransmission();
+	Wire.requestFrom(address, expected_length); 
 }
 
 int I2C_Device::get_int_from_response() {

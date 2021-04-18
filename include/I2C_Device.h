@@ -14,8 +14,6 @@ private:
 
 protected:
 	void zeroes_array(int target_array[], int size_of_array);
-
-	void send_request      ( int address, int length, int request );
 	void send_sync_request ( int address );
 
 public:
@@ -33,6 +31,7 @@ public:
 	void set_recive_data_length  (int  length         );
 	void set_is_synchronized     (bool synchronized   );
 
+	void send_request                 ( int address, int length, int request );
 	void send_sync_data_for_int_array ( int array_size );
 	void send_int_array               ( int array[], int array_length );
 
