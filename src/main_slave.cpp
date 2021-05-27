@@ -1,11 +1,12 @@
 #include "I2C_Im_Slave.h"
 // #include <ArduinoLowPower.h>
 
+
 // Define Slave I2C Address
 #define SLAVE_ADDR 9
 
 // Define Slave answer size
-#define HEADER_INFO_LENGTH 1
+#define HEADER_INFO_LENGTH    1  // 1 byte
 #define MAX_NUMBER_OF_SENSORS 8
 #define ANSWER_ARRAY_SIZE HEADER_INFO_LENGTH + MAX_NUMBER_OF_SENSORS
 
@@ -53,10 +54,8 @@ void loop() {
 
 	for (int i = 0; i < MAX_NUMBER_OF_SENSORS; i++) {
 		if (!g_data_array[i]) break;
-		Serial.print(String(g_data_array[i]) + "-");
 		g_answer[i + HEADER_INFO_LENGTH] = change_to_percentages(g_data_array[i]);
 	}
-	Serial.println("**\n");
 
 	// ONLY FOR TEST
 	for (int i = 0; i < ANSWER_ARRAY_SIZE; i++) {
@@ -75,7 +74,7 @@ void receiveEvent(size_t a) {
 
 void requestEvent() {
 	if(me->is_synchronizing()) {
-		me->send_sync_data_for_int_array(g_answer_size);
+		me->send_sync_data_for_u_int_array(g_answer_size);
 	} else {
 		reaction_for_request(me->get_request_from_master());
 	}
@@ -88,7 +87,7 @@ void reaction_for_request(int request){
 	switch (kind_of_message)
 	{
 	case SEND_DATA_FROM_SENSORS:
-		me->send_int_array(g_answer, g_answer_size);
+		me->send_u_int_array(g_answer, g_answer_size);
 		break;
 	default:
 		Serial.println("Not supported");

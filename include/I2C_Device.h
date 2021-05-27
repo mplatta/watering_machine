@@ -31,12 +31,12 @@ public:
 	void set_recive_data_length  (int  length         );
 	void set_is_synchronized     (bool synchronized   );
 
-	void send_request                 ( int address, int length, int request );
-	void send_sync_data_for_int_array ( int array_size );
-	void send_int_array               ( int array[], int array_length );
+	void send_request                   ( int address, int length, int request );
+	void send_sync_data_for_u_int_array ( int array_size );
+	void send_u_int_array               ( int array[], int array_length );
 
-	int  get_int_from_response       ();
-	int* get_int_array_from_response ();
+	int  get_u_int_from_response       ();
+	int* get_u_int_array_from_response ();
 
 	I2C_Device  () {};
 	I2C_Device  ( int address );

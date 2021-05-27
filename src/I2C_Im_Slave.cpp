@@ -24,7 +24,7 @@ bool I2C_Im_Slave::is_synchronizing() {
 
 void I2C_Im_Slave::receive_message() {
 	while (0 < Wire.available()) {
-		int x = this->get_int_from_response();
+		int x = this->get_u_int_from_response();
 
 		this->set_request_from_master(x);
 		this->check_synchronizing(x);

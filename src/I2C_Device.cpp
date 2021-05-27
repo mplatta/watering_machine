@@ -48,7 +48,7 @@ void I2C_Device::set_is_synchronized(bool synchronized) {
 
 /* -------------- Rest -------------- */
 
-void I2C_Device::send_sync_data_for_int_array(int array_size) {
+void I2C_Device::send_sync_data_for_u_int_array(int array_size) {
 	uint8_t ans[2] = { 0, 0 };
 
 	ans[0] = sizeof(int);
@@ -57,7 +57,7 @@ void I2C_Device::send_sync_data_for_int_array(int array_size) {
 	Wire.write(ans, I2C_Device::HEADER_LENGTH);
 }
 
-void I2C_Device::send_int_array(int array[], int array_length) {
+void I2C_Device::send_u_int_array(int array[], int array_length) {
 	uint8_t* ans = (uint8_t*)array;
 
 	Wire.write(ans, array_length * sizeof(int));
@@ -70,14 +70,14 @@ void I2C_Device::send_request(int address, int expected_length, int request) {
 	Wire.requestFrom(address, expected_length); 
 }
 
-int I2C_Device::get_int_from_response() {
+int I2C_Device::get_u_int_from_response() {
 	byte raw_data = Wire.read();
 	int int_buff = (int)raw_data;
 	
 	return int_buff;
 }
 
-int* I2C_Device::get_int_array_from_response () {
+int* I2C_Device::get_u_int_array_from_response () {
 	Wire.beginTransmission(this->address);
 	Wire.write(I2C_Device::SEND_ME_DATA_MESSAGE);
 	Wire.endTransmission();
@@ -92,7 +92,7 @@ int* I2C_Device::get_int_array_from_response () {
 	int actual_index = 0;
 	
 	while (Wire.available()) {
-		int tmp = get_int_from_response();
+		int tmp = get_u_int_from_response();
 
 		result_array[actual_index] += tmp << 8 * actual_byte;
 		actual_byte++;
