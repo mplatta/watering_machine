@@ -8,14 +8,14 @@ class I2C_Im_Slave: public I2C_Device
 private:
 	static int device_counter;
 
-	int request_from_master;
-	bool synchronizing;
+	uint32_t request_from_master;
+	bool     synchronizing;
 
-	bool check_synchronizing ( int message ); // TODO: Rename this
+	bool check_synchronizing ( uint32_t message ); // TODO: Rename this
 
 public:
-	int  get_request_from_master ( );
-	void set_request_from_master ( int request );
+	uint32_t  get_request_from_master ( );
+	void      set_request_from_master ( uint32_t request );
 
 	bool is_synchronizing    ( );
 	void receive_message     ( );

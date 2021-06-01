@@ -8,6 +8,12 @@ void I2C_Device::zeroes_array(int target_array[], int size_of_array) {
 	}
 }
 
+void I2C_Device::zeroes_array(uint8_t target_array[], int size_of_array) {
+	for (int i = 0; i < size_of_array; i++) {
+		target_array[i] = 0;
+	}
+}
+
 void I2C_Device::send_sync_request(int address) {
 	this->send_request(address, I2C_Device::HEADER_LENGTH, I2C_Device::SYNC_MESSAGE);
 }
@@ -70,29 +76,42 @@ void I2C_Device::send_request(int address, int expected_length, int request) {
 	Wire.requestFrom(address, expected_length); 
 }
 
-int I2C_Device::get_u_int_from_response() {
+void I2C_Device::send_request(int request) {
+	Wire.beginTransmission(this->address);
+	Wire.write(request);
+	Wire.endTransmission();
+}
+
+// uint32_t I2C_Device::get_u_int32_from_response() {
+// 	byte raw_data = Wire.read();
+// 	uint32_t int_buff = (uint32_t)raw_data;
+	
+// 	return int_buff;
+// }
+
+uint8_t I2C_Device::get_u_int_from_response() {
 	byte raw_data = Wire.read();
-	int int_buff = (int)raw_data;
+	uint8_t int_buff = (uint8_t)raw_data;
 	
 	return int_buff;
 }
 
-int* I2C_Device::get_u_int_array_from_response () {
+uint8_t* I2C_Device::request_for_u_int8_array (const int message) {
 	Wire.beginTransmission(this->address);
-	Wire.write(I2C_Device::SEND_ME_DATA_MESSAGE);
+	Wire.write(message);
 	Wire.endTransmission();
 		
 	// Read response
 	Wire.requestFrom(this->address, this->recive_data_length * this->size_of_recive_type);
 
-	int *result_array = new int[this->recive_data_length];
+	uint8_t *result_array = new uint8_t[this->recive_data_length];
 	zeroes_array(result_array, this->recive_data_length);
 	
 	int actual_byte = 0;
 	int actual_index = 0;
 	
 	while (Wire.available()) {
-		int tmp = get_u_int_from_response();
+		uint8_t tmp = get_u_int_from_response();
 
 		result_array[actual_index] += tmp << 8 * actual_byte;
 		actual_byte++;
