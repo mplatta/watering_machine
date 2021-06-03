@@ -3,6 +3,7 @@
 #include "I2C_Im_Slave.h"
 #include "formatted_log.h"
 #include "timer.h"
+#include "pumps.h"
 // #include <ArduinoLowPower.h>
 
 
@@ -10,10 +11,10 @@
 #define SLAVE_ADDR 9
 
 // Define Slave answer size
-#define HEADER_INFO_LENGTH      1  // 1 byte
-#define NUMBER_OF_RESERVED_PINS 2  // two pins needed for i2c
-#define MAX_ANALOG_PINS         8
-#define MAX_NUMBER_OF_SENSORS MAX_ANALOG_PINS - NUMBER_OF_RESERVED_PINS
+#define HEADER_INFO_LENGTH             1  // 1 byte
+#define NUMBER_OF_RESERVED_ANALOG_PINS 2  // two pins needed for i2c
+#define MAX_ANALOG_PINS                8
+#define MAX_NUMBER_OF_SENSORS MAX_ANALOG_PINS - NUMBER_OF_RESERVED_ANALOG_PINS
 #define ANSWER_ARRAY_SIZE HEADER_INFO_LENGTH + MAX_NUMBER_OF_SENSORS
 
 // Define kind of messages from master
@@ -22,24 +23,29 @@
 #define ACTIVE_PUMP            0b10000000
 
 #define MAX_VALUE_FOR_INACTIVE_SENSOR 10
+#define NUMBER_OF_PUMPS 3
 
-#define MAIN_LOOP_DELAY 500 // 50ms
+#define MAIN_LOOP_DELAY 50 // 50ms
 
-const int RESERVED_PINS[NUMBER_OF_RESERVED_PINS] = { 4, 5 };
+const int RESERVED_ALANOG_PINS[NUMBER_OF_RESERVED_ANALOG_PINS] = { 4, 5 };
+const int PUMPS_DIGITAL_PINS[NUMBER_OF_PUMPS] = { 2, 3, 4 };
 
 // Define wet/dry values
 const int WET_VALUE = 261;
 const int DRY_VALUE = 650;
 
 /* ---------------------- GLOBAL VARIABLES ------------------- */
-timer    g_main_loop_timer;
+timer  g_main_loop_timer ;
+timer *g_pumpd_loop_timer;
 
-int     *g_answer        ;
-int     *g_data_array    ;
-int      g_answer_size   ;
-int      g_active_sensors;
+int *g_answer        ;
+int *g_data_array    ;
+int  g_answer_size   ;
+int  g_active_sensors;
 
 I2C_Im_Slave *me = NULL;
+
+pumps g_pumps_list[NUMBER_OF_PUMPS];
 
 /* ----------------------- PROTOTYPES ------------------------ */
 void receiveEvent         ( size_t a    );
@@ -58,6 +64,10 @@ void active_pump ( int pump_id, int time );
 void setup() {
 	g_main_loop_timer = new_timer();
 
+	for (int i = 0; i < NUMBER_OF_PUMPS; i++) {
+		g_pumps_list[i] = new_pump(PUMPS_DIGITAL_PINS[i]);
+	}
+
 	g_answer         = (int*)calloc(ANSWER_ARRAY_SIZE, sizeof(int));
 	g_data_array     = (int*)calloc(MAX_NUMBER_OF_SENSORS, sizeof(int));
 	g_answer_size    = ANSWER_ARRAY_SIZE;
@@ -73,7 +83,8 @@ void setup() {
 
 void loop() {
 	start_timer(&g_main_loop_timer);
-	if (check_if_time_elapsed(&g_main_loop_timer, MAIN_LOOP_DELAY)) {
+	
+	if (wait_periodical(&g_main_loop_timer, MAIN_LOOP_DELAY)) {
 		g_data_array = get_data_from_sensors_and_check_if_active();
 		g_answer[0]  = g_active_sensors;
 
@@ -88,6 +99,10 @@ void loop() {
 		formatted_log("");
 
 		free(g_data_array);
+	}
+
+	for (int i = 0; i < NUMBER_OF_PUMPS; i++) {
+		stop_pump_after_timeout(&(g_pumps_list[i]));
 	}
 }
 
@@ -160,8 +175,8 @@ int is_sensor_active (int sensor_pin) {
 bool pin_is_in_reserved_pins(int pin) {
 	bool result = false;
 
-	for (int i = 0; i < NUMBER_OF_RESERVED_PINS; i++) {
-		if (RESERVED_PINS[i] == pin) {
+	for (int i = 0; i < NUMBER_OF_RESERVED_ANALOG_PINS; i++) {
+		if (RESERVED_ALANOG_PINS[i] == pin) {
 			result = true;
 			break;
 		}
@@ -171,9 +186,9 @@ bool pin_is_in_reserved_pins(int pin) {
 }
 
 void active_pump ( int pump_id, int time ) {
-	formatted_log("pump_id...." + String(pump_id));
-	digitalWrite(7, HIGH);
-	formatted_log("Time...." + String(time));
-	// delay(15000);
-	digitalWrite(7, LOW);
+	for (int i = 0; i < NUMBER_OF_PUMPS; ++i) {
+		if (g_pumps_list[i].pin == pump_id) {
+			start_pump(&(g_pumps_list[i]), (unsigned long)(time * 1000));
+		}
+	}
 }

@@ -30,8 +30,10 @@ void  start_timer   ( timer *t );
 void  pause_timer   ( timer *t );
 void  stop_timer    ( timer *t );
 void  reset_timer   ( timer *t );
+void  refresh_timer ( timer *t );
 
-bool check_if_time_elapsed ( timer *t, unsigned long ms );
+bool wait            ( timer *t, unsigned long ms );
+bool wait_periodical ( timer *t, unsigned long ms );
 
 static unsigned long time_duration_to_now ( unsigned long a );
 
@@ -133,7 +135,12 @@ void reset_timer ( timer *t ) {
 	}
 }
 
-bool check_if_time_elapsed( timer *t, unsigned long ms ) {
+void refresh_timer ( timer *t ) {
+	reset_timer(t);
+	start_timer(t);
+}
+
+bool wait( timer *t, unsigned long ms ) {
 	bool result = false;
 	unsigned long duration_time = 0; // only for log
 
@@ -155,13 +162,14 @@ bool check_if_time_elapsed( timer *t, unsigned long ms ) {
 		break;
 	}
 
-	if (result) {
-		reset_timer(t);
-		start_timer(t);
+	if (result) stop_timer(t);
 
-		begin_log(9600);
-		formatted_log("Duration time:" + String(duration_time));
-	}
+	return result;
+}
+
+bool wait_periodical( timer *t, unsigned long ms ) {
+	bool result = wait(t, ms);
+	if (result) refresh_timer(t);
 
 	return result;
 }

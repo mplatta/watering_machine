@@ -76,14 +76,16 @@ void setup() {
 
 void loop() {
 	start_timer(&g_main_loop_timer);
-	if (check_if_time_elapsed(&g_main_loop_timer, MAIN_LOOP_DELAY)) {
+	if (wait_periodical(&g_main_loop_timer, MAIN_LOOP_DELAY)) {
 		connect_BMP180_if_necessary();
 
 		if (g_sensors_slave->get_is_synchronized()) {
 			get_data_from_slave_check_sync();
 		} else {
 			formatted_info("I2C Synchronization....");
+			
 			g_sensors_slave->synchronize_data_format_with_slave();
+			
 			formatted_log(String(g_sensors_slave->get_recive_data_length())); 
 			formatted_log(String(g_sensors_slave->get_size_of_recive_type()));
 		}
@@ -97,7 +99,7 @@ void loop() {
 	if (g_is_OnlineMode) g_server.handleClient();
 	else {
 		start_timer(&g_wifi_retry_timer);
-		if (check_if_time_elapsed(&g_wifi_retry_timer, WIFI_TRY_AGAIN_DELAY)) {
+		if (wait_periodical(&g_wifi_retry_timer, WIFI_TRY_AGAIN_DELAY)) {
 			g_is_OnlineMode = connect_wifi();
 		}
 	}
